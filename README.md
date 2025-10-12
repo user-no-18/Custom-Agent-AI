@@ -31,4 +31,43 @@
 
 ---
 
+<p align="center">
+  <img 
+    src="https://github.com/user-attachments/assets/3efbbcde-9daf-447c-8590-40e609de986f"
+    alt="AI Chatbot Screenshot"
+    width="1000"
+    height="1000"
+    style="border-radius: 12px; box-shadow: 0 0 15px rgba(0,0,0,0.2); margin-top: 10px;"
+  />
+</p>
+
+<p align="center">
+  <em>📱 Sleek Next.js Chat UI — clean, modern, and responsive.</em>
+</p>
+
+---
+
+## ⚙️ Installation & Setup
+
+```bash
+# Clone this repo
+git clone https://github.com/yourusername/agent-ai-chatbot.git
+
+# Move into project folder
+cd agent-ai-chatbot
+
+# Install dependencies
+bun install
+
+# Create .env file
+cp .env.example .env
+# Add your API keys:
+# TAVILY_API_KEY=
+# OPENAI_API_KEY=
+# WEATHER_API_KEY=
+
+# Run locally
+bun run dev
+
+
 
