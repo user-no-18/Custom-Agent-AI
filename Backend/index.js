@@ -5,10 +5,8 @@ import { ToolNode } from "@langchain/langgraph/prebuilt";
 import { TavilySearch } from "@langchain/tavily";
 import { MemorySaver } from '@langchain/langgraph';
 
-// Hypothetical free tools
-import { NewsSearch } from "@langchain/news";
-import { WeatherSearch } from "@langchain/weather";
-import { WikipediaSearch } from "@langchain/wikipedia";
+
+// import { WikipediaSearch } from "@langchain/wikipedia";
 
 // Initialize checkpointer
 const checkpointer = new MemorySaver();
@@ -23,23 +21,19 @@ const tavilyTool = new TavilySearch({
 });
 
 // Initialize News tool
-const newsTool = new NewsSearch({
-    topic: 'technology',
-    maxArticles: 5
-});
+// const newsTool = new NewsSearch({
+//     topic: 'technology',
+//     maxArticles: 5
+// });
 
-// Initialize Weather tool
-const weatherTool = new WeatherSearch({
-    location: 'current' // can be dynamic later
-});
 
 // Initialize Wikipedia tool
-const wikiTool = new WikipediaSearch({
-    maxResults: 3
-});
+// const wikiTool = new WikipediaSearch({
+//     maxResults: 3
+// });
 
 // Add all tools to the array
-const tools = [tavilyTool, newsTool, weatherTool, wikiTool];
+const tools = [tavilyTool];
 const toolNode = new ToolNode(tools);
 
 // Initialize LLM
@@ -49,7 +43,7 @@ const llm = new ChatGroq({
   maxRetries: 2,
 }).bindTools(tools);
 
-// Node function
+// call llm
 async function callModel(state) {
   console.log("Calling LLM...");
   const messages = state.messages.map((m) => ({
@@ -60,7 +54,7 @@ async function callModel(state) {
   const response = await llm.invoke(messages);
   return { messages: [...messages, response] };
 }
-
+//conditional edge
 function shouldContinue(state) {
     const lastMessage = state.messages[state.messages.length - 1];
     if (lastMessage.tool_calls.length > 0) return 'tools';
@@ -78,7 +72,7 @@ const workflow = new StateGraph(MessagesAnnotation)
 
 const app = workflow.compile({ checkpointer });
 
-// CLI
+
 async function main() {
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
   const ask = (q) => new Promise((res) => rl.question(q, res));

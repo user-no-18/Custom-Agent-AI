@@ -1,261 +1,209 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowRight, Zap } from 'lucide-react';
+import Link from 'next/link';
+import Image from 'next/image';
 
-// ==================== TYPE DEFINITIONS ====================
-interface Message {
-  id: string;
-  text: string;
-  sender: 'user' | 'bot';
-  timestamp: Date;
-}
-
-// ==================== HEADER COMPONENT ====================
-const ChatHeader = () => {
-  return (
-    <div className="sticky top-0 z-10 bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 border-b border-purple-500/30 backdrop-blur-lg">
-      <div className="flex items-center gap-3 p-4">
-        <div className="relative">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/50 transform hover:scale-110 transition-transform duration-300">
-            <Bot className="w-7 h-7 text-white" />
-          </div>
-          <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 rounded-full border-2 border-slate-900 animate-pulse"></div>
-        </div>
-        <div>
-          <h1 className="text-xl font-bold text-white">Jaervice 😎</h1>
-          <p className="text-xs text-purple-300">Your AI Assistant</p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ==================== MESSAGE BUBBLE COMPONENT ====================
-const MessageBubble = ({ message }: { message: Message }) => {
-  const isBot = message.sender === 'bot';
-  
-  return (
-    <div className={`flex gap-2 ${isBot ? 'justify-start' : 'justify-end'} mb-4 animate-fadeIn`}>
-      {isBot && (
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-purple-500/30">
-          <Bot className="w-5 h-5 text-white" />
-        </div>
-      )}
-      
-      <div className={`max-w-[75%] sm:max-w-[70%] ${isBot ? 'order-2' : 'order-1'}`}>
-        <div
-          className={`px-4 py-3 rounded-2xl shadow-lg transform hover:scale-[1.02] transition-all duration-200 ${
-            isBot
-              ? 'bg-gradient-to-br from-slate-800 to-slate-700 text-white rounded-tl-sm border border-purple-500/30'
-              : 'bg-gradient-to-br from-purple-600 to-pink-600 text-white rounded-tr-sm'
-          }`}
-        >
-          <p className="text-sm leading-relaxed">{message.text}</p>
-        </div>
-        <p className={`text-xs text-slate-500 mt-1 px-2 ${isBot ? 'text-left' : 'text-right'}`}>
-          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-        </p>
-      </div>
-      
-      {!isBot && (
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-blue-500/30">
-          <User className="w-5 h-5 text-white" />
-        </div>
-      )}
-    </div>
-  );
-};
-
-// ==================== TYPING INDICATOR COMPONENT ====================
-const TypingIndicator = () => {
-  return (
-    <div className="flex gap-2 justify-start mb-4">
-      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-purple-500/30">
-        <Bot className="w-5 h-5 text-white" />
-      </div>
-      <div className="bg-gradient-to-br from-slate-800 to-slate-700 px-4 py-3 rounded-2xl rounded-tl-sm border border-purple-500/30">
-        <div className="flex gap-1">
-          <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-          <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-          <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ==================== MAIN APP COMPONENT ====================
-export default function JaerviceChatbot() {
-  // State management - using static timestamps to prevent hydration errors
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: 'Hey there! 😎 I\'m Jaervice, your personal AI assistant. How can I help you today?',
-      sender: 'bot',
-      timestamp: new Date('2024-01-01T12:00:00'),
-    },
-    {
-      id: '2',
-      text: 'Hi Jaervice! Can you help me with some tasks?',
-      sender: 'user',
-      timestamp: new Date('2024-01-01T12:01:00'),
-    },
-    {
-      id: '3',
-      text: 'Absolutely! I\'m here to assist you with anything you need. Just let me know what you\'d like help with! 🚀',
-      sender: 'bot',
-      timestamp: new Date('2024-01-01T12:02:00'),
-    },
-  ]);
-  
-  const [inputText, setInputText] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  // Auto-scroll to bottom when new messages arrive
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+export default function HomePage() {
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isTyping]);
-
-  // Handle sending messages
-  const handleSendMessage = async () => {
-    if (!inputText.trim()) return;
-
-    // Create user message
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      text: inputText,
-      sender: 'user',
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    const currentInput = inputText;
-    setInputText('');
-    setIsTyping(true);
-
-    // ========== BACKEND INTEGRATION WITH BUN.JS ==========
-    try {
-      console.log('🔄 Sending message to backend:', currentInput);
-      
-      const response = await fetch('http://localhost:3001/api/chat', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          message: currentInput,
-          threadId: 'user-session-' + Math.random().toString(36).substring(7)
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Backend responded with status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('✅ Received response from backend:', data);
-      
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: data.response || 'I received your message but had trouble processing it.',
-        sender: 'bot',
-        timestamp: new Date(),
-      };
-      
-      setMessages(prev => [...prev, botMessage]);
-      
-    } catch (error) {
-      console.error('❌ Error calling backend:', error);
-      
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: '😔 Sorry, I couldn\'t connect to my backend. Please make sure:\n\n1. Backend server is running on port 3001\n2. Run: cd Backend && bun run dev\n3. Check console for errors',
-        sender: 'bot',
-        timestamp: new Date(),
-      };
-      
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsTyping(false);
-    }
-  };
-
-  // Handle Enter key press
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
+    setMounted(true);
+  }, []);
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950">
-      {/* Custom animations */}
+    <div className="relative min-h-screen bg-black overflow-hidden flex items-center justify-center">
+      {/* Animated background grid */}
+      <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-950 to-black">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#0a4a5a_1px,transparent_1px),linear-gradient(to_bottom,#0a4a5a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20"></div>
+      </div>
+      
+      {/* Radial glow effects */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-cyan-500/10 rounded-full blur-3xl animate-pulse-slow"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1s' }}></div>
+      
+      {/* Scanning lines */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-500 to-transparent animate-scan-vertical"></div>
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-500 to-transparent animate-scan-vertical" style={{ animationDelay: '1.5s' }}></div>
+
+      {/* Main Content */}
+      <div className={`relative z-10 flex flex-col items-center justify-center px-6 py-12 transition-all duration-1000 ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+        
+        {/* Logo Container */}
+        <div className="relative mb-12 group">
+          {/* Animated rings around logo */}
+          <div className="absolute inset-0 -m-8 rounded-full border border-cyan-500/20 animate-ping-slow"></div>
+          <div className="absolute inset-0 -m-12 rounded-full border border-cyan-500/10 animate-ping-slow" style={{ animationDelay: '0.5s' }}></div>
+          <div className="absolute inset-0 -m-16 rounded-full border border-cyan-500/5 animate-ping-slow" style={{ animationDelay: '1s' }}></div>
+          
+          {/* Glow effect */}
+          <div className="absolute inset-0 bg-cyan-500/20 rounded-full blur-3xl group-hover:blur-[100px] transition-all duration-700"></div>
+          
+          {/* Logo Image */}
+          {/* <div className="relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96">
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-cyan-500/10 to-blue-500/10 animate-spin-very-slow"></div>
+            <Image
+              src="/jarvis-logo.png"
+              alt="JARVIS Logo"
+              width={384}
+              height={384}
+              className="relative z-10 w-full h-full object-contain drop-shadow-[0_0_50px_rgba(6,182,212,0.3)] group-hover:drop-shadow-[0_0_80px_rgba(6,182,212,0.5)] transition-all duration-500"
+              priority
+            />
+          </div> */}
+          
+          {/* Corner brackets */}
+          <div className="absolute -top-4 -left-4 w-12 h-12 border-t-2 border-l-2 border-cyan-500/50 rounded-tl-lg"></div>
+          <div className="absolute -top-4 -right-4 w-12 h-12 border-t-2 border-r-2 border-cyan-500/50 rounded-tr-lg"></div>
+          <div className="absolute -bottom-4 -left-4 w-12 h-12 border-b-2 border-l-2 border-cyan-500/50 rounded-bl-lg"></div>
+          <div className="absolute -bottom-4 -right-4 w-12 h-12 border-b-2 border-r-2 border-cyan-500/50 rounded-br-lg"></div>
+        </div>
+
+        {/* Title */}
+        <div className="text-center mb-8 space-y-3">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-cyan-400 animate-gradient tracking-wider">
+            JARVIS
+          </h1>
+          <p className="text-cyan-500/70 text-sm md:text-base lg:text-lg font-light tracking-widest uppercase">
+            Just A Rather Very Intelligent System
+          </p>
+          <div className="flex items-center justify-center gap-2 text-cyan-600/50 text-xs font-mono">
+            <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+            <span>SYSTEM ONLINE</span>
+            <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+          </div>
+        </div>
+
+        {/* Call to Action Button */}
+        <Link href="/chat">
+          <button className="group relative px-8 py-4 md:px-10 md:py-5 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-xl text-white font-semibold text-base md:text-lg overflow-hidden shadow-2xl shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-all duration-500 transform hover:scale-105 active:scale-95">
+            {/* Button glow */}
+            <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-400 opacity-0 group-hover:opacity-100 blur-xl transition-opacity duration-500"></div>
+            
+            {/* Animated border */}
+            <div className="absolute inset-0 rounded-xl border-2 border-cyan-400/0 group-hover:border-cyan-400/50 transition-all duration-500"></div>
+            
+            {/* Shine effect */}
+            <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12"></div>
+            
+            {/* Button content */}
+            <span className="relative flex items-center gap-3">
+              <Zap className="w-5 h-5 group-hover:animate-pulse" />
+              <span className="tracking-wide">GET STARTED</span>
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform duration-300" />
+            </span>
+          </button>
+        </Link>
+
+        {/* Subtitle */}
+        <p className="mt-8 text-cyan-700/60 text-xs md:text-sm font-mono text-center max-w-md">
+          Experience the power of advanced AI assistance
+        </p>
+      </div>
+
+      {/* Corner HUD elements */}
+      <div className="absolute top-4 left-4 md:top-8 md:left-8 text-cyan-600/40 font-mono text-xs space-y-1">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse"></div>
+          <span>SYS.READY</span>
+        </div>
+        <div>v4.0.1</div>
+      </div>
+      
+      <div className="absolute top-4 right-4 md:top-8 md:right-8 text-cyan-600/40 font-mono text-xs text-right space-y-1">
+        <div className="flex items-center justify-end gap-2">
+          <span>AI.ONLINE</span>
+          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+        </div>
+        <div>100%</div>
+      </div>
+
+      {/* Bottom center info */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-cyan-700/40 font-mono text-xs text-center">
+        <div className="flex items-center gap-2">
+          <div className="h-px w-12 bg-gradient-to-r from-transparent to-cyan-500/50"></div>
+          <span>STARK INDUSTRIES</span>
+          <div className="h-px w-12 bg-gradient-to-l from-transparent to-cyan-500/50"></div>
+        </div>
+      </div>
+
+      {/* Custom Animations */}
       <style jsx global>{`
-        @keyframes fadeIn {
-          from {
+        @keyframes scan-vertical {
+          0%, 100% {
+            transform: translateY(-100vh);
+          }
+          50% {
+            transform: translateY(100vh);
+          }
+        }
+        @keyframes pulse-slow {
+          0%, 100% {
+            opacity: 0.5;
+          }
+          50% {
+            opacity: 1;
+          }
+        }
+        @keyframes ping-slow {
+          0% {
+            transform: scale(1);
+            opacity: 0.8;
+          }
+          100% {
+            transform: scale(1.5);
             opacity: 0;
-            transform: translateY(10px);
+          }
+        }
+        @keyframes spin-very-slow {
+          from {
+            transform: rotate(0deg);
           }
           to {
-            opacity: 1;
-            transform: translateY(0);
+            transform: rotate(360deg);
           }
         }
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out;
+        @keyframes gradient {
+          0%, 100% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+        }
+        .animate-scan-vertical {
+          animation: scan-vertical 8s ease-in-out infinite;
+        }
+        .animate-pulse-slow {
+          animation: pulse-slow 4s ease-in-out infinite;
+        }
+        .animate-ping-slow {
+          animation: ping-slow 3s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        .animate-spin-very-slow {
+          animation: spin-very-slow 20s linear infinite;
+        }
+        .animate-gradient {
+          background-size: 200% 200%;
+          animation: gradient 3s ease infinite;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+          width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.3);
+        }
+        ::-webkit-scrollbar-thumb {
+          background: rgba(6, 182, 212, 0.3);
+          border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: rgba(6, 182, 212, 0.5);
         }
       `}</style>
-      
-      {/* Header */}
-      <ChatHeader />
-
-      {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-2">
-        <div className="max-w-4xl mx-auto">
-          {messages.map((message) => (
-            <MessageBubble key={message.id} message={message} />
-          ))}
-          {isTyping && <TypingIndicator />}
-          <div ref={messagesEndRef} />
-        </div>
-      </div>
-
-      {/* Input Area */}
-      <div className="border-t border-purple-500/30 bg-slate-900/80 backdrop-blur-lg p-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex gap-2 items-end">
-            <div className="flex-1 relative">
-              <input
-                ref={inputRef}
-                type="text"
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Type your message..."
-                className="w-full px-4 py-3 pr-12 bg-slate-800 border border-purple-500/30 rounded-2xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-              />
-            </div>
-            <button
-              onClick={handleSendMessage}
-              disabled={!inputText.trim()}
-              className="p-3 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl text-white hover:from-purple-500 hover:to-pink-500 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95 transition-all duration-200 shadow-lg shadow-purple-500/30"
-            >
-              <Send className="w-5 h-5" />
-            </button>
-          </div>
-          <p className="text-xs text-slate-500 mt-2 text-center">
-            Press Enter to send • Shift + Enter for new line
-          </p>
-        </div>
-      </div>
     </div>
   );
 }
