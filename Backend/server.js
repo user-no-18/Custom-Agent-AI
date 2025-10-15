@@ -55,7 +55,7 @@ const workflow = new StateGraph(MessagesAnnotation)
 
 const app = workflow.compile({ checkpointer });
 
-// ==================== HTTP SERVER FOR NEXT.JS ====================
+// connecting to frontend
 
 const PORT = process.env.PORT || 3001;
 
@@ -66,18 +66,18 @@ Bun.serve({
     
     // CORS headers for Next.js frontend
     const headers = {
-      'Access-Control-Allow-Origin': 'http://localhost:3000', // Next.js default port
+      'Access-Control-Allow-Origin': 'http://localhost:3000', 
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
       'Content-Type': 'application/json',
     };
 
-    // Handle preflight requests
+
     if (req.method === 'OPTIONS') {
       return new Response(null, { headers });
     }
 
-    // Health check endpoint
+    
     if (url.pathname === '/health' && req.method === 'GET') {
       return new Response(
         JSON.stringify({ status: 'ok', message: 'Jaervice backend is running! 😎' }), 
@@ -85,7 +85,7 @@ Bun.serve({
       );
     }
 
-    // Main chat endpoint
+   
     if (url.pathname === '/api/chat' && req.method === 'POST') {
       try {
         const body = await req.json();
@@ -140,7 +140,6 @@ Bun.serve({
   },
 });
 
-console.log(`\n🚀 Jaervice Backend Server Started!`);
-console.log(`📡 Server: http://localhost:${PORT}`);
-console.log(`💬 Chat API: http://localhost:${PORT}/api/chat`);
-console.log(`❤️  Health: http://localhost:${PORT}/health\n`);
+console.log(`\n Jaervice Backend Server Started!`);
+console.log(` Server: http://localhost:${PORT}`);
+console.log(` Chat API: http://localhost:${PORT}/api/chat`);

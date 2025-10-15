@@ -7,8 +7,13 @@
     "start": "bun run server.js"
   },
   "dependencies": {
+    "@langchain/community": "^0.3.57",
+    "@langchain/core": "^0.3.78",
     "@langchain/groq": "latest",
     "@langchain/langgraph": "latest",
-    "@langchain/tavily": "latest"
+    "@langchain/tavily": "latest",
+    "axios": "^1.12.2",
+    "langchain": "^0.3.36",
+    "zod": "^4.1.12"
   }
 }
